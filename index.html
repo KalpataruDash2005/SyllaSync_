@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SyllabSync — Upload Your Course Files</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ════ NAV ════ -->
+<nav class="nav">
+  <a class="logo" href="#">
+    <span class="logo-mark">S</span>SyllabSync
+  </a>
+  <div class="nav-links">
+    <a href="#upload-section">Upload</a>
+    <a href="#how-it-works">How it works</a>
+  </div>
+</nav>
+
+<!-- ════ HERO ════ -->
+<header class="hero">
+  <div class="hero-inner">
+    <span class="badge">AI-Powered Study Planner</span>
+    <h1 class="hero-title">Turn any syllabus into a<br /><em>15-week success plan</em></h1>
+    <p class="hero-sub">
+      Upload up to 20 course PDFs — lecture notes, syllabi, textbooks.
+      SyllabSync extracts the content, structures it with AI, and returns
+      a day-by-day study schedule with memory techniques and study tips.
+    </p>
+    <a class="btn-primary" href="#upload-section">Get Started →</a>
+  </div>
+</header>
+
+<!-- ════ HOW IT WORKS ════ -->
+<section class="steps-section" id="how-it-works">
+  <div class="container">
+    <h2 class="section-title">How it works</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>Upload PDFs</h3>
+        <p>Drop your course files — syllabus, lecture notes, textbook chapters. Up to 20 files, 50 MB each.</p>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>AI Analyses</h3>
+        <p>Gemini reads every document, identifies topics, difficulty, deadlines and structure.</p>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>Plan Generated</h3>
+        <p>Get a week-by-week schedule with daily tasks, memory techniques, and exam strategy.</p>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <h3>Syncs Everywhere</h3>
+        <p>Auto-creates Google Calendar events and weekly prep email drafts via n8n automation.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ UPLOAD SECTION ════ -->
+<section class="upload-section" id="upload-section">
+  <div class="container">
+    <h2 class="section-title">Upload your course files</h2>
+
+    <!-- Drop Zone -->
+    <div class="drop-zone" id="dropZone">
+      <div class="drop-icon">📄</div>
+      <h3>Drag & drop PDFs here</h3>
+      <p>or <label class="browse-link" for="fileInput">browse your files</label></p>
+      <p class="drop-hint">Up to 20 PDFs · Max 50 MB each</p>
+      <input type="file" id="fileInput" multiple accept=".pdf" hidden />
+    </div>
+
+    <!-- File List -->
+    <div class="file-list" id="fileList" hidden></div>
+
+    <!-- Analyse Button -->
+    <div class="analyse-row" id="analyseRow" hidden>
+      <div class="file-count-badge" id="fileCountBadge"></div>
+      <button class="btn-primary btn-analyse" id="analyseBtn">
+        Analyse with SyllabSync →
+      </button>
+    </div>
+
+    <!-- ── PROGRESS ── -->
+    <div class="progress-panel" id="progressPanel" hidden>
+      <div class="progress-header">
+        <div class="spinner"></div>
+        <span class="progress-step-label" id="progressLabel">Initialising…</span>
+        <span class="progress-pct" id="progressPct">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <div class="pipeline-steps" id="pipelineSteps">
+        <div class="pip-step" id="pip-extract">📄 Extracting PDFs</div>
+        <div class="pip-step" id="pip-organise">🗂️ Organising content</div>
+        <div class="pip-step" id="pip-ai1">🤖 AI summary (pass 1)</div>
+        <div class="pip-step" id="pip-ai2">🧠 Generating plan (pass 2)</div>
+        <div class="pip-step" id="pip-sync">📅 Syncing to calendar</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════ RESULTS ════ -->
+<section class="results-section" id="resultsSection" hidden>
+  <div class="container">
+
+    <div class="results-header">
+      <h2 class="section-title" id="planTitle">Your 15-Week Study Plan</h2>
+      <div class="results-meta" id="resultsMeta"></div>
+      <div class="export-bar">
+        <button class="btn-secondary" id="exportJsonBtn">⬇ Export JSON</button>
+        <button class="btn-secondary" id="printBtn">🖨 Print Plan</button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="plan">📅 Study Plan</button>
+      <button class="tab" data-tab="memory">🧠 Memory Techniques</button>
+      <button class="tab" data-tab="tips">💡 Study Tips</button>
+      <button class="tab" data-tab="exam">📝 Exam Prep</button>
+    </div>
+
+    <!-- TAB: Study Plan (15 weeks) -->
+    <div class="tab-content active" id="tab-plan">
+      <div class="weeks-grid" id="weeksGrid"></div>
+    </div>
+
+    <!-- TAB: Memory Techniques -->
+    <div class="tab-content" id="tab-memory">
+      <div class="techniques-grid" id="techniquesGrid"></div>
+    </div>
+
+    <!-- TAB: Study Tips -->
+    <div class="tab-content" id="tab-tips">
+      <div class="tips-columns" id="tipsContent"></div>
+    </div>
+
+    <!-- TAB: Exam Prep -->
+    <div class="tab-content" id="tab-exam">
+      <div class="exam-content" id="examContent"></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════ FOOTER ════ -->
+<footer class="footer">
+  <div class="container">
+    <p>SyllabSync · Built for the Hackathon · Powered by Gemini + n8n</p>
+  </div>
+</footer>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

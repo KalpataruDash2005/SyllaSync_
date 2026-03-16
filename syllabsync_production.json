@@ -1,0 +1,134 @@
+{
+  "name": "SyllabSync - Final Production Build - FIXED",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "syllabsync-ingest",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "node-webhook-in",
+      "name": "Webhook — Receive Study Plan",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [100, 300],
+      "webhookId": "syllabsync-ingest"
+    },
+    {
+      "parameters": {
+        "jsCode": "const REVIEWER_EMAIL = \"aditya.bajoria0208@gmail.com\";\nconst STUDENT_EMAIL = \"jainishbaria42@gmail.com\";\nconst body = $input.first().json.body || $input.first().json;\nconst sessionId = `session_${Date.now()}`;\n\nconst staticData = $getWorkflowStaticData('global');\nstaticData.sessions = staticData.sessions || {};\nstaticData.sessions[sessionId] = { plan: body };\n\nconst approveUrl = `http://localhost:5678/webhook-test/syllabsync-decide?sid=${sessionId}&a=approve`;\n\nconst htmlEmail = `<div style=\"font-family:sans-serif; border:1px solid #4f46e5; border-radius:12px; padding:20px;\"><h2>📚 Review Plan: ${body.course_name}</h2><a href=\"${approveUrl}\" style=\"background:#16a34a; color:white; padding:12px 24px; text-decoration:none; border-radius:5px; font-weight:bold; display:inline-block;\">✅ APPROVE & SYNC</a></div>`;\n\nreturn [{ json: { sessionId, reviewerEmail: REVIEWER_EMAIL, studentEmail: STUDENT_EMAIL, htmlEmail, courseName: body.course_name } }];"
+      },
+      "id": "node-config",
+      "name": "Config & Preview",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, 300]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.reviewerEmail }}",
+        "subject": "🎓 SyllabSync: New Plan for {{ $json.courseName }}",
+        "message": "={{ $json.htmlEmail }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "node-gmail-review",
+      "name": "Gmail — Send Review",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [540, 300]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "syllabsync-decide",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "node-webhook-decide",
+      "name": "Webhook — Decision",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [100, 500],
+      "webhookId": "syllabsync-decide"
+    },
+    {
+      "parameters": {
+        "jsCode": "const sessionId = $input.first().json.query.sid;\nconst action = $input.first().json.query.a;\nconst staticData = $getWorkflowStaticData('global');\nconst session = staticData.sessions[sessionId];\n\nconst plan = session.plan;\nconst week1 = plan.weeks[0];\nconst toughTopics = week1.topics.filter(t => week1.difficulty >= 4).join(', ') || \"No major boss fights!\";\n\nconst week1Email = `<div style=\"font-family:sans-serif; padding:20px; border:2px solid #4f46e5;\"><h3>🤖 Study Buddy</h3><p>Course: ${plan.course_name}</p><p><b>Tough Topics:</b> ${toughTopics}</p></div>`;\n\nconst events = plan.weeks.map((w, i) => {\n  let start = new Date();\n  start.setDate(start.getDate() + (i * 7));\n  return {\n    summary: `📚 Buddy Session: ${w.theme}`,\n    description: `Focus on: ${w.topics.join(', ')}`,\n    start: start.toISOString(),\n    end: new Date(start.getTime() + 7200000).toISOString()\n  };\n});\n\nreturn [{ json: { week1Email, events, studentEmail: \"jainishbaria42@gmail.com\" } }];"
+      },
+      "id": "node-logic",
+      "name": "Buddy & Topic Logic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, 500]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.studentEmail }}",
+        "subject": "🚀 Your Week 1 Study Prep is Ready!",
+        "message": "={{ $json.week1Email }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "node-gmail-kickoff",
+      "name": "Gmail — Student Kickoff",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [540, 500]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "events",
+        "options": {}
+      },
+      "id": "node-split",
+      "name": "Split Events",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [720, 500]
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "primary",
+          "mode": "list"
+        },
+        "start": "={{ $json.start }}",
+        "end": "={{ $json.end }}",
+        "additionalFields": {
+          "summary": "={{ $json.summary }}",
+          "description": "={{ $json.description }}"
+        }
+      },
+      "id": "node-gcal",
+      "name": "Google Calendar Sync",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.1,
+      "position": [900, 500]
+    }
+  ],
+  "connections": {
+    "Webhook — Receive Study Plan": {
+      "main": [[{ "node": "Config & Preview", "index": 0 }]]
+    },
+    "Config & Preview": {
+      "main": [[{ "node": "Gmail — Send Review", "index": 0 }]]
+    },
+    "Webhook — Decision": {
+      "main": [[{ "node": "Buddy & Topic Logic", "index": 0 }]]
+    },
+    "Buddy & Topic Logic": {
+      "main": [[{ "node": "Gmail — Student Kickoff", "index": 0 }]]
+    },
+    "Gmail — Student Kickoff": {
+      "main": [[{ "node": "Split Events", "index": 0 }]]
+    },
+    "Split Events": {
+      "main": [[{ "node": "Google Calendar Sync", "index": 0 }]]
+    }
+  }
+}
