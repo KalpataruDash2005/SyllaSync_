@@ -194,3 +194,5 @@ Plans improve automatically over time.
 | n8n webhook not called | Check `N8N_WEBHOOK_URL` is correct and n8n is running |
 | Google Calendar events not created | Re-authenticate Google Calendar OAuth2 in n8n |
 | PDF text empty | File may be scanned/image-only — use OCR pre-processing |
+
+P.S. The code will run perfectly but it'll not be seen to you, because the email are our developers so due to time constraint we can't add the feature for your own mail address
